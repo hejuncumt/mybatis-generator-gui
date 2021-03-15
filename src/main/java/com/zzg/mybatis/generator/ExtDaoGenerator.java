@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 /**
  * @ClassName ExtDaoGenerator
- * @Description TODO
+ * @Description ExtDao生成
  * @Author HeJun
  * @Author 2021/3/12 15:28
  * @Version 1.0
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 public class ExtDaoGenerator {
 
     /**
-     * 到main层的本地路径
+     * Mapper.java所在项目路径，具体到main层的本地路径
      */
 //    private static String basePath = "C:\\yeepay-workspace\\wanli-service\\wanli-core\\src\\main\\";
     private static String basePath = "C:\\yeepay-workspace\\yeepay-phb\\phb-persistence\\src\\main\\";
