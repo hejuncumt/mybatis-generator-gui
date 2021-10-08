@@ -26,37 +26,37 @@ public class ExtDaoGenerator {
      * Mapper.java所在项目路径，具体到main层的本地路径
      */
 //    private static String basePath = "C:\\yeepay-workspace\\wanli-service\\wanli-core\\src\\main\\";
-    private static String basePath = "C:\\yeepay-workspace\\yeepay-phb\\phb-persistence\\src\\main\\";
+    private static String basePath = "C:\\yeepay-workspace\\applet\\applet-persistence\\src\\main\\";
     /**
      * 要生成的实体名称列表，若为空，则全部生成
      */
-    private static List<String> includeEntitys = Arrays.asList("BindCard");
+    private static List<String> includeEntitys = Arrays.asList("");
     /**
      * 要排除的实体名称列表，可以为空
      */
     private static List<String> excludeEntitys = Arrays.asList("PlatformCoupon", "Shop");
     /**
-     * 扩展Dao类后缀名，如：UserExtDao.java
+     * 扩展Dao接口类后缀名，如：UserExtDao.java
      */
-    private static String extDaoSuffix = "Dao";
+    private static String daoSuffix = "Dao";
     /**
-     * 原始dao类后缀名，如：UserRepository.java
+     * 原始Mapper接口类后缀名，如：UserMapper.java
      */
-    private static String daoSuffix = "Mapper";
+    private static String mapperSuffix = "Mapper";
     /**
-     * 原始dao接口包路径
+     * 原始Mapper接口包路径
      */
-    private static String daoPackage = "com.yeepay.g3.core.phb.dao";
+    private static String mapperPackage = "com.yeepay.g3.core.applet.persistence.dao.agent";
     /**
-     * 原始dao实体的包路径
+     * 原始Entity实体的包路径
      */
-    private static String entityPackage = "com.yeepay.g3.core.phb.po";
+    private static String entityPackage = "com.yeepay.g3.core.applet.persistence.po.agent";
     /**
-     * 原始Mapper.xml的路径
+     * 原始Mapper.xml的文件路径
      */
-    private static String xmlPath = "C:\\yeepay-workspace\\yeepay-phb\\phb-hessian\\src\\main\\resources\\mapper\\";
+    private static String mapperXmlPath = "C:\\yeepay-workspace\\applet\\applet-persistence\\src\\main\\java\\com\\yeepay\\g3\\core\\applet\\persistence\\mapper\\agent\\";
     /**
-     * 扩展dao的包名、.xml目录名称
+     * 扩展dao的包名及扩展xml文件的目录名称
      */
     private static String extName = "ext";
 
@@ -68,7 +68,7 @@ public class ExtDaoGenerator {
         Stream<File> query = Arrays.stream(file.listFiles()).filter(x -> !x.getName().endsWith("Query.java"));
         List<String> currentEntity = query.map(x -> StringUtils.substringBeforeLast(x.getName(), ".")).collect(Collectors.toList());
 
-        String packageToPath = packageToPath(daoPackage);
+        String packageToPath = packageToPath(mapperPackage);
         System.out.println("Ext代码生成开始！");
         int num = 0;
         //如果设置了要生成的实体，则只对这些实体生成Ext文件
@@ -88,7 +88,7 @@ public class ExtDaoGenerator {
             System.out.println(entityName + "开始!");
             String javaContent = genExtDaoJavaContent(entityName);
             //生成ExtDao.java文件
-            makeJavaFile(javaContent, basePath + packageToPath + extName + File.separator + entityName + extDaoSuffix + ".java");
+            makeJavaFile(javaContent, basePath + packageToPath + extName + File.separator + entityName + daoSuffix + ".java");
             //生成ExtDao.xml文件
             makeXmlFile(entityName);
             System.out.println(entityName + "结束!");
@@ -103,8 +103,13 @@ public class ExtDaoGenerator {
     }
 
     private static void makeJavaFile(String content, String filePath) throws IOException {
+        String substring = filePath.substring(0, StringUtils.lastIndexOf(filePath, File.separator));
+        File file = new File(substring);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
         FileWriter fileWriter = new FileWriter(filePath);
-        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
         bufferedWriter.write(content);
         bufferedWriter.close();
     }
@@ -116,16 +121,16 @@ public class ExtDaoGenerator {
      * @return
      */
     private static String genExtDaoJavaContent(String entityName) {
-        String packagePath = "package " + daoPackage + "." + extName + ";\n\n";
-        String importPath = "import " + daoPackage + "." + entityName + daoSuffix + ";\n\n";
-        String content = "public interface " + entityName + extDaoSuffix + " extends " + entityName + daoSuffix + "{\n\n}";
+        String packagePath = "package " + mapperPackage + "." + extName + ";\n\n";
+        String importPath = "import " + mapperPackage + "." + entityName + mapperSuffix + ";\n\n";
+        String content = "public interface " + entityName + daoSuffix + " extends " + entityName + mapperSuffix + "{\n\n}";
         return packagePath + importPath + content;
     }
 
     private static String makeXmlFile(String entityName) throws IOException {
-        String xmlFilename = entityName + extDaoSuffix + ".xml";
-        String xmlFile = xmlPath + extName + File.separator + xmlFilename;
-        String newNameSpace = daoPackage + "." + extName + "." + entityName + extDaoSuffix;
+        String xmlFilename = entityName + daoSuffix + ".xml";
+        String xmlFile = mapperXmlPath + extName + File.separator + xmlFilename;
+        String newNameSpace = mapperPackage + "." + extName + "." + entityName + daoSuffix;
         Document document = DocumentHelper.createDocument();
         //先将dtd代码段按注释写入到xml文件，然后再去掉注释符号
         document.addComment("<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\" >");
@@ -134,7 +139,12 @@ public class ExtDaoGenerator {
         Element resultMap = mapper.addElement("resultMap");
         resultMap.addAttribute("id", "Ext" + entityName + "Map");
         resultMap.addAttribute("type", entityPackage + "." + entityName);
-        resultMap.addAttribute("extends", daoPackage + "." + entityName + daoSuffix + "." + "BaseResultMap");
+        resultMap.addAttribute("extends", mapperPackage + "." + entityName + mapperSuffix + "." + "BaseResultMap");
+        String substring = xmlFile.substring(0, StringUtils.lastIndexOf(xmlFile, File.separator));
+        File file = new File(substring);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
         OutputStream outputStream = new FileOutputStream(xmlFile);
         OutputFormat format = OutputFormat.createPrettyPrint();
         XMLWriter xmlWriter = new XMLWriter(outputStream, format);
